@@ -1,0 +1,34 @@
+name: "Buscar cocheras CABA"
+
+on:
+  schedule:
+    - cron: "*/30 * * * *" # cada 30 min (respaldo; el disparador real es el Cloudflare Worker)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: node scraper.js
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Guardar estado (avisos enviados, chats, geocache)
+        run: |
+          git config user.name "bot-cocheras-caba"
+          git config user.email "actions@github.com"
+          git add sent_ids.json chat_ids.json geocache.json
+          git diff --cached --quiet || git commit -m "Actualiza estado del bot"
+          git push

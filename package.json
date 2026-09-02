@@ -1,0 +1,14 @@
+{
+  "name": "bot-cocheras-caba",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bot que busca cocheras en alquiler para auto a menos de 5 cuadras de Av. Corrientes 5753 (Villa Crespo, CABA) y avisa por Telegram.",
+  "type": "commonjs",
+  "main": "scraper.js",
+  "scripts": {
+    "start": "node scraper.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
