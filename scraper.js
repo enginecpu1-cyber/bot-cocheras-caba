@@ -57,38 +57,15 @@ function saveJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-// --- Chat ids (mismo patron que el bot de deptos) ---
-// Cualquiera que le escriba al bot (aunque sea "hola") queda sumado a los avisos,
-// ademas del TELEGRAM_CHAT_ID fijo. Usa el offset de Telegram para no releer.
+// --- Destinatarios de los avisos ---
+// El bot tiene un webhook en el Worker de Cloudflare (para /cercanas, /start), asi
+// que aca NO se puede usar getUpdates (Telegram no permite webhook + polling a la
+// vez). Los destinatarios salen de TELEGRAM_CHAT_ID + los ids ya guardados en
+// chat_ids.json. Para sumar a alguien nuevo, agregar su id a ese archivo a mano.
 
-async function refreshChatIds() {
-  const state = loadJson(CHATS_FILE, { chatIds: [], lastUpdateId: 0 });
-  const chatIds = new Set(state.chatIds);
-
-  const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?offset=${state.lastUpdateId + 1}`;
-  let data;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) {
-      console.error(`[telegram] getUpdates HTTP ${res.status}`);
-      return [...chatIds];
-    }
-    data = await res.json();
-  } catch (err) {
-    console.error(`[telegram] getUpdates error: ${err.message}`);
-    return [...chatIds];
-  }
-  if (!data.ok) return [...chatIds];
-
-  let maxUpdateId = state.lastUpdateId;
-  for (const update of data.result) {
-    maxUpdateId = Math.max(maxUpdateId, update.update_id);
-    const chat = update.message?.chat;
-    if (chat && chat.type === "private") chatIds.add(String(chat.id));
-  }
-
-  saveJson(CHATS_FILE, { chatIds: [...chatIds], lastUpdateId: maxUpdateId });
-  return [...chatIds];
+function loadRecipients() {
+  const state = loadJson(CHATS_FILE, { chatIds: [] });
+  return Array.isArray(state.chatIds) ? state.chatIds : [];
 }
 
 // --- Geo ---
@@ -385,10 +362,7 @@ async function main() {
     return;
   }
 
-  // Corre siempre (aunque no haya nada nuevo): asi quien recien le escribio al bot
-  // queda sumado a los avisos desde la proxima corrida.
-  const refreshed = await refreshChatIds();
-  const chatIds = new Set(refreshed);
+  const chatIds = new Set(loadRecipients());
   if (TELEGRAM_CHAT_ID) chatIds.add(String(TELEGRAM_CHAT_ID));
 
   if (fresh.length === 0) {
