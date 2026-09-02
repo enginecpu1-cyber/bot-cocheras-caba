@@ -5,7 +5,10 @@ de **Av. Corrientes 5753, Villa Crespo (CABA)**.
 
 - Bot de Telegram: [`@cocheras_villacrespo_bot`](https://t.me/cocheras_villacrespo_bot) ("Cocheras Villa Crespo")
 - Corre solo, gratis, cada 30 minutos. No hace falta tenerlo abierto ni revisarlo.
-- Cualquiera que le escriba `/start` al bot queda sumado a los avisos (no solo Nicolás).
+- Comandos (webhook en el Worker, respuesta instantánea):
+  - `/cercanas` — lista de garages comerciales a ≤5 cuadras con teléfono, para preguntar por abono mensual. Datos relevados de Google Maps el 2026-09-02, hardcodeados en `worker/src/index.js` (no se scrapean, casi no cambian).
+  - `/start`, `/help` — qué hace el bot.
+- Destinatarios de los avisos: `TELEGRAM_CHAT_ID` + los ids en `chat_ids.json`. Con el webhook activo NO se puede usar `getUpdates`, así que para sumar a alguien hay que agregar su id a `chat_ids.json` a mano.
 
 ## Qué filtra
 
