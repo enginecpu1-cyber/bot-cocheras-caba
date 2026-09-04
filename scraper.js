@@ -1,5 +1,6 @@
-// Bot de cocheras en alquiler para AUTO, a <= 5 cuadras de Av. Corrientes 5753
-// (Villa Crespo, CABA) -> avisa por Telegram con foto.
+// Bot de MercadoLibre -> avisa por Telegram con foto. Dos busquedas:
+//   1. Cocheras en alquiler para AUTO a <= 5 cuadras de Av. Corrientes 5753 (Villa Crespo).
+//   2. Departamentos en alquiler CON cochera, <= $750.000 total, en Villa Crespo / Almagro / Palermo.
 // Corre via GitHub Actions (ver .github/workflows/buscar-cocheras.yml).
 //
 // Fuente: MercadoLibre Inmuebles (inmuebles.mercadolibre.com.ar), sin login ni API paga.
@@ -295,28 +296,142 @@ async function sendMessage(chatId, text) {
   }
 }
 
-async function sendListing(chatId, listing) {
-  const caption = formatCaption(listing);
+async function sendListing(chatId, listing, formatter) {
+  const caption = (formatter || formatCaption)(listing);
   if (listing.image && (await sendPhoto(chatId, listing.image, caption))) return;
   await sendMessage(chatId, caption); // fallback sin foto
 }
 
-// --- Main ---
+// --- Deptos con cochera (MercadoLibre) ---
+// Distinto de la busqueda de cocheras: aca son barrios enteros (no radio de 5
+// cuadras), alquiler <= $750.000 total CON cochera incluida, en Villa Crespo /
+// Almagro / Palermo. Se combina el filtro estructurado de ML (_Cocheras_1) con
+// los avisos que mencionan cochera en el titulo pero no tildaron el atributo.
 
-async function main() {
-  const dryRun = process.env.DRY_RUN === "1";
-  if (!dryRun && !TELEGRAM_TOKEN) {
-    throw new Error("Falta TELEGRAM_BOT_TOKEN en el entorno.");
+const DEPTO_BARRIOS = ["villa-crespo", "almagro", "palermo"];
+const DEPTO_PRICE_MAX_ARS = 750_000;
+const DEPTO_COCHERA = /\bcocheras?\b|\bgarages?\b|\bgaraje\b/i;
+const DEPTO_SIN_COCHERA = /sin cochera|no incluye cochera|sin garage/i;
+const DEPTO_DESCARTE = /\bventa\b|temporari[oa]|temporal/i;
+
+function buildDeptoUrl(barrio, conCochera, desde) {
+  let u = `https://inmuebles.mercadolibre.com.ar/departamentos/alquiler/capital-federal/${barrio}/_PriceRange_0ARS-${DEPTO_PRICE_MAX_ARS}ARS`;
+  if (conCochera) u += "_Cocheras_1";
+  if (desde) u += `_Desde_${desde}`;
+  return u;
+}
+
+function parseDeptoCards(html, barrio, fromCocheraFacet) {
+  const $ = cheerio.load(html);
+  const out = [];
+  $("li.ui-search-layout__item").each((_, el) => {
+    const card = $(el);
+    const titleEl = card.find("a.poly-component__title").first();
+    const title = titleEl.text().trim();
+    const link = (titleEl.attr("href") || "").split("#")[0].split("?")[0];
+    if (!title || !link) return;
+    const idMatch = link.match(/MLA-?(\d+)/);
+    const id = idMatch ? `MLA${idMatch[1]}` : link;
+
+    const priceAria =
+      card.find(".poly-price__current .andes-money-amount").first().attr("aria-label") || "";
+    const priceDigits = priceAria.replace(/[^\d]/g, "");
+    const price = priceDigits ? parseInt(priceDigits, 10) : null;
+    const priceCurrency = /d[oó]lar/i.test(priceAria) ? "USD" : "ARS";
+
+    const locationRaw = card.find(".poly-component__location").first().text().trim();
+    const attrsText = card
+      .find(".poly-component__attributes-list li, .poly-attributes-list__item, .poly-component__attributes-list span")
+      .map((_i, e) => $(e).text().trim())
+      .get()
+      .join(" · ");
+    const image =
+      card.find(".poly-component__picture").first().attr("src") ||
+      card.find(".poly-component__picture").first().attr("data-src") ||
+      null;
+
+    out.push({ id, title, link, price, priceCurrency, locationRaw, attrsText, barrio, image, fromCocheraFacet });
+  });
+  return out;
+}
+
+async function fetchDeptosBarrio(barrio) {
+  const all = [];
+  for (const conCochera of [true, false]) {
+    for (const desde of [null, 49]) {
+      const url = buildDeptoUrl(barrio, conCochera, desde);
+      let html;
+      try {
+        const res = await fetch(url, {
+          headers: { "User-Agent": USER_AGENT, "Accept-Language": "es-AR,es;q=0.9" },
+        });
+        if (!res.ok) {
+          if (!desde) console.error(`[ml-depto:${barrio}${conCochera ? ":coch" : ""}] HTTP ${res.status}`);
+          break;
+        }
+        html = await res.text();
+      } catch (err) {
+        console.error(`[ml-depto:${barrio}] error: ${err.message}`);
+        break;
+      }
+      const page = parseDeptoCards(html, barrio, conCochera);
+      all.push(...page);
+      if (page.length < 48) break; // no hay mas paginas
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    await new Promise((r) => setTimeout(r, 400));
   }
+  return all;
+}
 
-  const sentIds = loadJson(STATE_FILE, {});
-  const geocache = loadJson(GEOCACHE_FILE, {});
+function deptoPasa(d) {
+  if (d.price == null) return false;
+  if (d.priceCurrency !== "ARS") return false; // ventas en USD que se cuelan en alquiler
+  if (d.price > DEPTO_PRICE_MAX_ARS) return false;
+  if (DEPTO_DESCARTE.test(d.title)) return false; // venta / temporario
+  const txt = `${d.title} ${d.attrsText}`;
+  if (DEPTO_SIN_COCHERA.test(txt)) return false;
+  // Con cochera: vino del filtro estructurado de ML, o lo dice el titulo/atributos.
+  return d.fromCocheraFacet || DEPTO_COCHERA.test(txt);
+}
 
+function formatDeptoCaption(d) {
+  const lines = [];
+  lines.push(`🏠 ${d.title}`);
+  const bits = [formatMoney(d.price)];
+  if (d.attrsText) bits.push(d.attrsText);
+  lines.push(bits.join(" · "));
+  lines.push(`📍 ${d.locationRaw.split(",").slice(0, 2).join(",").trim()}`);
+  lines.push(d.link);
+  return lines.join("\n").slice(0, 1024);
+}
+
+async function findDeptosFresh(sentIds) {
+  const raw = [];
+  for (const barrio of DEPTO_BARRIOS) {
+    raw.push(...(await fetchDeptosBarrio(barrio)));
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  // dedupe: un mismo aviso aparece en el fetch con y sin _Cocheras_1
+  const byId = new Map();
+  for (const d of raw) {
+    const prev = byId.get(d.id);
+    if (!prev) byId.set(d.id, d);
+    else if (d.fromCocheraFacet) prev.fromCocheraFacet = true; // conservar la senal
+  }
+  const ok = [...byId.values()].filter(deptoPasa);
+  const fresh = ok.filter((d) => !sentIds[d.id]);
+  fresh.sort((a, b) => a.price - b.price);
+  return { fresh, total: byId.size, ok: ok.length };
+}
+
+// --- Cocheras: buscar las nuevas dentro del radio ---
+
+async function findCocherasFresh(sentIds, geocache) {
   // 1. Traer todos los avisos de ML de los barrios candidatos.
   const raw = [];
   for (const barrio of BARRIOS) {
-    const listings = await fetchMLBarrio(barrio);
-    raw.push(...listings);
+    raw.push(...(await fetchMLBarrio(barrio)));
     await new Promise((r) => setTimeout(r, 500)); // educado con ML
   }
   const byId = Array.from(new Map(raw.map((l) => [l.id, l])).values());
@@ -329,7 +444,6 @@ async function main() {
   for (const listing of candidates) {
     const street = parseStreet(listing.locationRaw);
     if (!street) {
-      // Sin altura: solo se pasa si es en Villa Crespo, marcado como impreciso.
       if (/villa crespo/i.test(listing.locationRaw)) {
         listing.distanceM = null;
         inRadius.push(listing);
@@ -350,38 +464,69 @@ async function main() {
       inRadius.push(listing);
     }
   }
-  if (geocacheDirty) saveJson(GEOCACHE_FILE, geocache);
 
   // 4. Nuevos (no avisados antes).
   const fresh = inRadius.filter((l) => !sentIds[l.id]);
   fresh.sort((a, b) => (a.distanceM ?? 1e9) - (b.distanceM ?? 1e9));
+  return { fresh, total: byId.length, candidates: candidates.length, inRadius: inRadius.length };
+}
+
+// --- Main ---
+
+async function main() {
+  const dryRun = process.env.DRY_RUN === "1";
+  if (!dryRun && !TELEGRAM_TOKEN) {
+    throw new Error("Falta TELEGRAM_BOT_TOKEN en el entorno.");
+  }
+
+  const sentIds = loadJson(STATE_FILE, {});
+  const geocache = loadJson(GEOCACHE_FILE, {});
+
+  const coch = await findCocherasFresh(sentIds, geocache);
+  if (geocacheDirty) saveJson(GEOCACHE_FILE, geocache);
+  const dep = await findDeptosFresh(sentIds);
 
   if (dryRun) {
-    console.log(`[DRY RUN] ${byId.length} avisos ML, ${candidates.length} tras filtro basico, ${inRadius.length} dentro de ${RADIUS_M} m, ${fresh.length} nuevos:\n`);
-    for (const m of fresh) console.log(formatCaption(m) + "\n---");
+    console.log(`[DRY RUN] cocheras: ${coch.total} avisos ML, ${coch.candidates} tras filtro, ${coch.inRadius} en radio, ${coch.fresh.length} nuevas:\n`);
+    for (const m of coch.fresh) console.log(formatCaption(m) + "\n---");
+    console.log(`\n[DRY RUN] deptos con cochera: ${dep.total} avisos, ${dep.ok} cumplen (<= ${formatMoney(DEPTO_PRICE_MAX_ARS)}, con cochera), ${dep.fresh.length} nuevos:\n`);
+    for (const d of dep.fresh) console.log(formatDeptoCaption(d) + "\n---");
     return;
   }
 
   const chatIds = new Set(loadRecipients());
   if (TELEGRAM_CHAT_ID) chatIds.add(String(TELEGRAM_CHAT_ID));
 
-  if (fresh.length === 0) {
-    console.log(`Sin cocheras nuevas dentro de ${RADIUS_M} m en esta corrida.`);
+  if (coch.fresh.length === 0 && dep.fresh.length === 0) {
+    console.log("Sin cocheras ni deptos nuevos en esta corrida.");
     saveJson(STATE_FILE, sentIds);
     return;
   }
 
   for (const chatId of chatIds) {
-    await sendMessage(chatId, `🅿️ ${fresh.length} cochera(s) nueva(s) para auto a <= 5 cuadras de Corrientes 5753:`);
-    for (const m of fresh) {
-      await sendListing(chatId, m);
-      await new Promise((r) => setTimeout(r, 400));
+    if (coch.fresh.length) {
+      await sendMessage(chatId, `🅿️ ${coch.fresh.length} cochera(s) nueva(s) para auto a <= 5 cuadras de Corrientes 5753:`);
+      for (const m of coch.fresh) {
+        await sendListing(chatId, m);
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    }
+    if (dep.fresh.length) {
+      await sendMessage(
+        chatId,
+        `🏠 ${dep.fresh.length} depto(s) con cochera nuevo(s) hasta ${formatMoney(DEPTO_PRICE_MAX_ARS)} en Villa Crespo / Almagro / Palermo:`
+      );
+      for (const d of dep.fresh) {
+        await sendListing(chatId, d, formatDeptoCaption);
+        await new Promise((r) => setTimeout(r, 400));
+      }
     }
   }
 
-  for (const m of fresh) sentIds[m.id] = new Date().toISOString();
+  for (const m of coch.fresh) sentIds[m.id] = new Date().toISOString();
+  for (const d of dep.fresh) sentIds[d.id] = new Date().toISOString();
   saveJson(STATE_FILE, sentIds);
-  console.log(`Enviadas ${fresh.length} cocheras nuevas a ${chatIds.size} destinatario(s).`);
+  console.log(`Enviadas ${coch.fresh.length} cocheras + ${dep.fresh.length} deptos a ${chatIds.size} destinatario(s).`);
 }
 
 main().catch((err) => {
