@@ -1,7 +1,9 @@
 # Bot de cocheras — Villa Crespo
 
-Avisa por Telegram cuando aparece una **cochera en alquiler para auto** a **5 cuadras o menos**
-de **Av. Corrientes 5753, Villa Crespo (CABA)**.
+Avisa por Telegram dos cosas:
+
+1. **Cocheras en alquiler para auto** a **5 cuadras o menos** de **Av. Corrientes 5753, Villa Crespo (CABA)**.
+2. **Departamentos en alquiler con cochera**, **alquiler total ≤ $750.000** (cochera incluida), en **Villa Crespo, Almagro y Palermo** (barrios enteros, sin radio).
 
 - Bot de Telegram: [`@cocheras_villacrespo_bot`](https://t.me/cocheras_villacrespo_bot) ("Cocheras Villa Crespo")
 - Corre solo, gratis, cada 30 minutos. No hace falta tenerlo abierto ni revisarlo.
@@ -24,6 +26,17 @@ de **Av. Corrientes 5753, Villa Crespo (CABA)**.
 - Avisos en USD se descartan (no hay cotización cargada acá).
 - Direcciones sin altura exacta: solo se mandan si son en Villa Crespo, marcadas
   "⚠️ sin dirección exacta".
+
+### Deptos con cochera (búsqueda 2)
+
+- URL de ML: `.../departamentos/alquiler/capital-federal/<barrio>/_PriceRange_0ARS-750000ARS` — se combina
+  el filtro estructurado `_Cocheras_1` (los que tildaron "tiene cochera") con los avisos cuyo título/atributos
+  mencionan "cochera/garage" pero no lo tildaron. Unión, deduplicada por id.
+- Descarta: precio en USD, ventas coladas en alquiler (`/venta/`), alquiler temporario, y los que dicen
+  explícitamente "sin cochera".
+- Sin filtro de ambientes ni amoblado (Nicolás no los pidió). Para cambiar tope/barrios: `DEPTO_PRICE_MAX_ARS`
+  y `DEPTO_BARRIOS` en `scraper.js`.
+- Limitación: si un depto tiene cochera pero el vendedor ni la tildó ni la nombró en el título, no lo agarra.
 
 **Facebook Marketplace / particulares fuera de ML no están incluidos:** requieren login y tienen
 anti-bot que no pasa desde GitHub Actions (misma limitación que los bots de autos y deptos).
