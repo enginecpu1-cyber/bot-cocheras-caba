@@ -366,5 +366,9 @@
     "lat": -34.6175909,
     "lon": -58.4468189
   },
-  "comuna 11, caballito, ciudad autonoma de buenos aires, argentina": null
+  "comuna 11, caballito, ciudad autonoma de buenos aires, argentina": null,
+  "josé bonifacio 524, caballito, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6268796,
+    "lon": -58.4345388
+  }
 }
