@@ -387,5 +387,9 @@
     "lat": -34.5773832,
     "lon": -58.4248413
   },
-  "gallo 1658, palermo, ciudad autonoma de buenos aires, argentina": null
+  "gallo 1658, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "céspedes 3645, chacarita, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5807739,
+    "lon": -58.4559267
+  }
 }
