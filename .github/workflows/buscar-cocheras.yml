@@ -20,6 +20,15 @@ jobs:
 
       - run: npm install
 
+      # Chromium headless para Argenprop y Zonaprop (anti-bot que rechaza HTTP simple).
+      - name: Cache de Chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - run: npx playwright install --with-deps chromium
+
       - run: node scraper.js
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -31,4 +40,5 @@ jobs:
           git config user.email "actions@github.com"
           git add sent_ids.json chat_ids.json geocache.json
           git diff --cached --quiet || git commit -m "Actualiza estado del bot"
+          git pull --rebase origin master || true
           git push

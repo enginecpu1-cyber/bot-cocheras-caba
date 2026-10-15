@@ -208,6 +208,119 @@ async function fetchMLBarrio(barrio) {
   return Array.from(new Map(all.map((l) => [l.id, l])).values());
 }
 
+// --- Argenprop y Zonaprop (cocheras) ---
+// Fuentes extra. Sus anti-bot (desafio JS) rechazan pedidos HTTP simples, asi que se leen
+// con Chromium headless (Playwright). Si Playwright no esta instalado o el sitio bloquea
+// la IP, se loguea y se sigue solo con el resto: nunca rompe la corrida.
+// Properati e Inmuebles24 siguen bloqueando tambien al navegador headless (401/403): fuera.
+
+// Solo Villa Crespo: es el barrio de la casa, y menos pedidos = menos chances de que el anti-bot corte.
+const EXTRA_BARRIOS = ["villa-crespo"];
+
+function parseArgenCards(html, barrio) {
+  const $ = cheerio.load(html);
+  const out = [];
+  $(".listing__item").each((_, el) => {
+    const card = $(el);
+    const href = card.find("a.card").first().attr("href") || "";
+    const idMatch = href.match(/--(\d+)/);
+    if (!idMatch) return;
+    const txt = (s) => card.find(s).first().text().replace(/\s+/g, " ").trim();
+    const priceText = txt(".card__price");
+    const priceDigits = priceText.replace(/[^\d]/g, "");
+    const feat = txt(".card__main-features");
+    out.push({
+      id: `AP${idMatch[1]}`,
+      src: "Argenprop",
+      title: `Cochera${feat ? " — " + feat : ""}`,
+      desc: txt(".card__info"),
+      link: `https://www.argenprop.com${href}`,
+      price: priceDigits ? parseInt(priceDigits, 10) : null,
+      priceCurrency: /^\s*(usd|u\$s)/i.test(priceText) ? "USD" : "ARS",
+      areaText: "",
+      locationRaw: txt(".card__address"),
+      barrio,
+      image: card.find("img").first().attr("src") || null,
+    });
+  });
+  return out;
+}
+
+function parseZonaCards(html, barrio) {
+  const $ = cheerio.load(html);
+  const out = [];
+  $('[data-qa="posting PROPERTY"]').each((_, el) => {
+    const card = $(el);
+    const id = card.attr("data-id");
+    const to = (card.attr("data-to-posting") || "").split("?")[0];
+    if (!id || !to) return;
+    const txt = (s) => card.find(s).first().text().replace(/\s+/g, " ").trim();
+    const priceText = txt('[data-qa="POSTING_CARD_PRICE"]');
+    const priceDigits = priceText.replace(/[^\d]/g, "");
+    const feat = txt('[data-qa="POSTING_CARD_FEATURES"]');
+    const addr = txt(".postingAddress, [class*=address]");
+    const loc = txt('[data-qa="POSTING_CARD_LOCATION"]');
+    const m2 = feat.match(/\d+\s*m²[^\d]*/);
+    out.push({
+      id: `ZP${id}`,
+      src: "Zonaprop",
+      title: `Cochera${feat ? " — " + feat : ""}`,
+      desc: txt('[data-qa="POSTING_CARD_DESCRIPTION"]'),
+      link: `https://www.zonaprop.com.ar${to}`,
+      price: priceDigits ? parseInt(priceDigits, 10) : null,
+      priceCurrency: /^\s*(usd|u\$s)/i.test(priceText) ? "USD" : "ARS",
+      areaText: m2 ? m2[0].trim() : "",
+      locationRaw: [addr, loc].filter(Boolean).join(", "),
+      barrio,
+      image: card.find("img").first().attr("src") || card.find("img").first().attr("data-src") || null,
+    });
+  });
+  return out;
+}
+
+async function fetchBrowserSources() {
+  let chromium;
+  try {
+    ({ chromium } = require("playwright"));
+  } catch {
+    console.error("[browser] playwright no instalado: se saltean Argenprop y Zonaprop");
+    return [];
+  }
+  const jobs = [];
+  for (const barrio of EXTRA_BARRIOS) {
+    jobs.push({ barrio, name: "argenprop", url: `https://www.argenprop.com/cocheras/alquiler/${barrio}`, parse: parseArgenCards, sel: ".listing__item" });
+    jobs.push({ barrio, name: "zonaprop", url: `https://www.zonaprop.com.ar/cocheras-alquiler-${barrio}.html`, parse: parseZonaCards, sel: '[data-qa="posting PROPERTY"]' });
+  }
+  const all = [];
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+    const ctx = await browser.newContext({
+      locale: "es-AR",
+      userAgent: USER_AGENT.replace("Chrome/120.0", "Chrome/124.0"),
+    });
+    for (const job of jobs) {
+      const page = await ctx.newPage();
+      try {
+        await page.goto(job.url, { waitUntil: "domcontentloaded", timeout: 45000 });
+        await page.waitForSelector(job.sel, { timeout: 20000 }).catch(() => {});
+        const found = job.parse(await page.content(), job.barrio);
+        if (found.length === 0) console.error(`[${job.name}:${job.barrio}] sin avisos (bloqueado o vacio)`);
+        all.push(...found);
+      } catch (err) {
+        console.error(`[${job.name}:${job.barrio}] error: ${err.message.slice(0, 90)}`);
+      }
+      await page.close();
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  } catch (err) {
+    console.error(`[browser] no pudo lanzar Chromium: ${err.message.slice(0, 120)}`);
+  } finally {
+    if (browser) await browser.close().catch(() => {});
+  }
+  return all;
+}
+
 // --- Filtros de dominio ---
 
 const NON_COCHERA = /(departamento|\bdepto\b|\bph\b|\bcasa\b|oficina|\blocal\b|fondo de comercio|terreno|\blote\b|galp[oó]n|dep[oó]sito)/i;
@@ -225,13 +338,14 @@ function areaM2(listing) {
 
 // true si el aviso es claramente solo para moto (y no menciona auto).
 function isMotoOnly(listing) {
-  const t = `${listing.title} ${listing.areaText}`;
+  const t = `${listing.title} ${listing.areaText} ${listing.desc || ""}`;
   if (!MOTO.test(t)) return false;
   return !AUTO_OK.test(t);
 }
 
 function passesBasics(listing) {
   if (NON_COCHERA.test(listing.title)) return false;
+  if (/no es apto para estacionamiento/i.test(listing.desc || "")) return false;
   // Cochera de verdad: lo dice el titulo, o el area es chica (<= 40 m²).
   const area = areaM2(listing);
   if (!COCHERA_POS.test(listing.title) && !(area != null && area <= 40)) return false;
@@ -254,7 +368,7 @@ function formatMoney(n) {
 
 function formatCaption(listing) {
   const lines = [];
-  lines.push(`🅿️ ${listing.title}`);
+  lines.push(`🅿️ ${listing.title}${listing.src ? ` (${listing.src})` : ""}`);
   const bits = [formatMoney(listing.price)];
   if (listing.areaText) bits.push(listing.areaText);
   lines.push(bits.join(" · "));
@@ -267,6 +381,7 @@ function formatCaption(listing) {
   }
 
   lines.push(listing.link);
+  for (const alt of listing.alt || []) lines.push(`También: ${alt}`);
   return lines.join("\n").slice(0, 1024);
 }
 
@@ -434,6 +549,7 @@ async function findCocherasFresh(sentIds, geocache) {
     raw.push(...(await fetchMLBarrio(barrio)));
     await new Promise((r) => setTimeout(r, 500)); // educado con ML
   }
+  raw.push(...(await fetchBrowserSources()));
   const byId = Array.from(new Map(raw.map((l) => [l.id, l])).values());
 
   // 2. Filtro basico (cochera de auto, precio en ARS).
@@ -465,8 +581,23 @@ async function findCocherasFresh(sentIds, geocache) {
     }
   }
 
-  // 4. Nuevos (no avisados antes).
-  const fresh = inRadius.filter((l) => !sentIds[l.id]);
+  // 4. Un mismo lugar suele estar publicado en varios portales: se agrupa por direccion+precio
+  // y se avisa una sola vez (con los links de las otras fuentes). Nuevo = ningun id del grupo avisado.
+  const groups = new Map();
+  for (const l of inRadius) {
+    const place = (parseStreet(l.locationRaw) || l.locationRaw).toLowerCase().replace(/[^a-z0-9áéíóúñ ]/g, "").replace(/\s+/g, " ").trim();
+    const key = `${place}|${l.price}`;
+    const g = groups.get(key);
+    if (!g) {
+      l.ids = [l.id];
+      l.alt = [];
+      groups.set(key, l);
+    } else {
+      g.ids.push(l.id);
+      g.alt.push(`${l.src || "MercadoLibre"}: ${l.link}`);
+    }
+  }
+  const fresh = [...groups.values()].filter((g) => !g.ids.some((id) => sentIds[id]));
   fresh.sort((a, b) => (a.distanceM ?? 1e9) - (b.distanceM ?? 1e9));
   return { fresh, total: byId.length, candidates: candidates.length, inRadius: inRadius.length };
 }
@@ -523,7 +654,7 @@ async function main() {
     }
   }
 
-  for (const m of coch.fresh) sentIds[m.id] = new Date().toISOString();
+  for (const m of coch.fresh) for (const id of m.ids || [m.id]) sentIds[id] = new Date().toISOString();
   for (const d of dep.fresh) sentIds[d.id] = new Date().toISOString();
   saveJson(STATE_FILE, sentIds);
   console.log(`Enviadas ${coch.fresh.length} cocheras + ${dep.fresh.length} deptos a ${chatIds.size} destinatario(s).`);
