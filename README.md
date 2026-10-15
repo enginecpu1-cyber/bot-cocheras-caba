@@ -14,8 +14,8 @@ Avisa por Telegram dos cosas:
 
 ## Qué filtra
 
-- **Fuente:** MercadoLibre Inmuebles (`inmuebles.mercadolibre.com.ar`), categoría cocheras/alquiler,
-  barrios Villa Crespo, Almagro, Chacarita, Caballito y Palermo. Sin login ni API paga.
+- **Fuentes (cocheras):** MercadoLibre Inmuebles (HTTP simple; Villa Crespo, Almagro, Chacarita, Caballito, Palermo) + **Argenprop** y **Zonaprop** (solo Villa Crespo, leídos con Chromium headless vía Playwright porque su anti-bot rechaza HTTP simple). Sin login ni API paga. Un mismo lugar publicado en varios portales se avisa **una sola vez** (agrupa por dirección + precio y lista los otros links como "También: …").
+- **Fuentes que NO andan:** Properati (401 aun con navegador), Inmuebles24 (Cloudflare 403), Facebook Marketplace (login). Argenprop suele bloquear IPs de datacenter (GitHub Actions) — es best-effort: si bloquea, se loguea y se sigue con el resto.
 - **Radio:** geocodifica la dirección de cada aviso con Nominatim (OpenStreetMap, gratis) y mide
   distancia en línea recta a la casa. Se queda con lo que está a ≤ 600 m (~5 cuadras porteñas).
   Los resultados de geocoding se cachean en `geocache.json` (se commitea) para no repetir pedidos.

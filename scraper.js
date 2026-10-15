@@ -318,6 +318,8 @@ async function fetchBrowserSources() {
   } finally {
     if (browser) await browser.close().catch(() => {});
   }
+  const cuenta = (n) => all.filter((l) => l.src === n).length;
+  console.log(`[browser] Argenprop: ${cuenta("Argenprop")} avisos, Zonaprop: ${cuenta("Zonaprop")} avisos`);
   return all;
 }
 
