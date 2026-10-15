@@ -423,5 +423,10 @@
   "thames 300, villa crespo, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5972164,
     "lon": -58.4458195
-  }
+  },
+  "otamendi 79, caballito, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6152172,
+    "lon": -58.4319167
+  },
+  "juan b. ambrosetti 100, caballito, ciudad autonoma de buenos aires, argentina": null
 }
