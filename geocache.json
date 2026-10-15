@@ -462,5 +462,11 @@
     "lon": -58.4263435
   },
   "costa rica 5546, villa crespo, ciudad autonoma de buenos aires, argentina": null,
-  "avenida santa fe 3788, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "avenida santa fe 3788, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "mario bravo 800, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "bulnes 334, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "avenida corrientes 3841, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.600479,
+    "lon": -58.436901
+  }
 }
