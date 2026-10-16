@@ -471,5 +471,9 @@
   },
   "maza 500, villa crespo, ciudad autonoma de buenos aires, argentina": null,
   "otamendi 79, villa crespo, ciudad autonoma de buenos aires, argentina": null,
-  "avenida luis maría campos 1329, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "avenida luis maría campos 1329, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "avenida luis maría campos 1329, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5642412,
+    "lon": -58.4415734
+  }
 }
