@@ -493,5 +493,9 @@
   "avenida corrientes 4500, villa crespo, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5951464,
     "lon": -58.4438776
+  },
+  "cordoba 3800, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.589916,
+    "lon": -58.4366447
   }
 }
