@@ -505,5 +505,9 @@
   "serrano 200, villa crespo, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5989147,
     "lon": -58.4459143
+  },
+  "san luis 3200, almagro, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5993046,
+    "lon": -58.4142356
   }
 }
