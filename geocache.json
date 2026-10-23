@@ -509,5 +509,14 @@
   "san luis 3200, almagro, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5993046,
     "lon": -58.4142356
-  }
+  },
+  "av. josé maría moreno 351, caballito, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6221922,
+    "lon": -58.4350213
+  },
+  "san luis 3200, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6065217,
+    "lon": -58.4502845
+  },
+  "gorriti 3800, villa crespo, ciudad autonoma de buenos aires, argentina": null
 }
