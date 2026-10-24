@@ -518,5 +518,9 @@
     "lat": -34.6065217,
     "lon": -58.4502845
   },
-  "gorriti 3800, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "gorriti 3800, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "teodoro garcia 2200, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5673859,
+    "lon": -58.4435996
+  }
 }
