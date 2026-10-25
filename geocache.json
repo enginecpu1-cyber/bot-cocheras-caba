@@ -527,5 +527,9 @@
     "lat": -34.6136963,
     "lon": -58.4290935
   },
-  "lezica 4444, caballito, ciudad autonoma de buenos aires, argentina": null
+  "lezica 4444, caballito, ciudad autonoma de buenos aires, argentina": null,
+  "av. sta. fe 3041, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.583969,
+    "lon": -58.4176844
+  }
 }
