@@ -547,5 +547,9 @@
   "olleros 3700, chacarita, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5828529,
     "lon": -58.4510745
+  },
+  "acevedo 273, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5992808,
+    "lon": -58.4420422
   }
 }
