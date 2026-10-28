@@ -553,5 +553,9 @@
     "lon": -58.4420422
   },
   "avellaneda 337, villa crespo, ciudad autonoma de buenos aires, argentina": null,
-  "arce 500, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "arce 500, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "av. sta. fe 3525, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5861409,
+    "lon": -58.414212
+  }
 }
