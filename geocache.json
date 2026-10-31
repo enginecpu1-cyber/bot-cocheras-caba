@@ -566,5 +566,13 @@
     "lat": -34.6040924,
     "lon": -58.4486101
   },
-  "av. avellaneda 336, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "av. avellaneda 336, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "bonpland 2251, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5791235,
+    "lon": -58.4323817
+  },
+  "raúl scalabrini ortiz 2890, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5826996,
+    "lon": -58.4123887
+  }
 }
