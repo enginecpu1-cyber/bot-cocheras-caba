@@ -574,5 +574,29 @@
   "raúl scalabrini ortiz 2890, palermo, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5826996,
     "lon": -58.4123887
+  },
+  "avenida corrientes 5300, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5991603,
+    "lon": -58.439746
+  },
+  "avenida doctor honorio pueyrredón 1500, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6040924,
+    "lon": -58.4486101
+  },
+  "estado de palestina 800, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5969419,
+    "lon": -58.4247408
+  },
+  "arévalo 1400, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "avenida avellaneda 300, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "coronel niceto vega 5900, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "josé antonio cabrera 5600, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "avenida córdoba 3800, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5889324,
+    "lon": -58.4381281
+  },
+  "thames 600, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.594554,
+    "lon": -58.442066
   }
 }
