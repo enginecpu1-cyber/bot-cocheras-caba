@@ -606,5 +606,17 @@
   "aráoz 1997, villa crespo, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.597984,
     "lon": -58.4340633
+  },
+  "avenida corrientes 6300, chacarita, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5884084,
+    "lon": -58.4522588
+  },
+  "uriarte 1500, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5881676,
+    "lon": -58.4333339
+  },
+  "avenida corrientes 6300, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6018493,
+    "lon": -58.4328237
   }
 }
