@@ -33,6 +33,8 @@ const PRICE_MAX_ARS = null;
 // el filtro real es la distancia, no el barrio.
 const BARRIOS = ["villa-crespo", "almagro", "chacarita", "caballito", "palermo"];
 
+const FORCE_COCHERAS = process.env.FORCE_COCHERAS === "1";
+
 const STATE_FILE = path.join(__dirname, "sent_ids.json");
 const CHATS_FILE = path.join(__dirname, "chat_ids.json");
 const GEOCACHE_FILE = path.join(__dirname, "geocache.json");
@@ -599,7 +601,8 @@ async function findCocherasFresh(sentIds, geocache) {
       g.alt.push(`${l.src || "MercadoLibre"}: ${l.link}`);
     }
   }
-  const fresh = [...groups.values()].filter((g) => !g.ids.some((id) => sentIds[id]));
+  // FORCE_COCHERAS=1: corrida manual que manda TODO lo disponible, ignorando lo ya avisado.
+  const fresh = [...groups.values()].filter((g) => FORCE_COCHERAS || !g.ids.some((id) => sentIds[id]));
   fresh.sort((a, b) => (a.distanceM ?? 1e9) - (b.distanceM ?? 1e9));
   return { fresh, total: byId.length, candidates: candidates.length, inRadius: inRadius.length };
 }
@@ -617,7 +620,7 @@ async function main() {
 
   const coch = await findCocherasFresh(sentIds, geocache);
   if (geocacheDirty) saveJson(GEOCACHE_FILE, geocache);
-  const dep = await findDeptosFresh(sentIds);
+  const dep = FORCE_COCHERAS ? { fresh: [], total: 0, ok: 0 } : await findDeptosFresh(sentIds);
 
   if (dryRun) {
     console.log(`[DRY RUN] cocheras: ${coch.total} avisos ML, ${coch.candidates} tras filtro, ${coch.inRadius} en radio, ${coch.fresh.length} nuevas:\n`);
