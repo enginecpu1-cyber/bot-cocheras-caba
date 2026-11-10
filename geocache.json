@@ -691,5 +691,30 @@
   "portela 51, chacarita, ciudad autonoma de buenos aires, argentina": null,
   "olaya 1100, chacarita, ciudad autonoma de buenos aires, argentina": null,
   "felipe vallese 1600, chacarita, ciudad autonoma de buenos aires, argentina": null,
-  "mario bravo 800, chacarita, ciudad autonoma de buenos aires, argentina": null
+  "mario bravo 800, chacarita, ciudad autonoma de buenos aires, argentina": null,
+  "rivadavia y diagonal norte 6, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "av. josé m moreno 409, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "holmberg 3400, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "pilar 1372, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5769855,
+    "lon": -58.4376359
+  },
+  "adolfo alsina 1644, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "amenabar 2000, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5748628,
+    "lon": -58.4426138
+  },
+  "peru 345, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5811278,
+    "lon": -58.4005564
+  },
+  "av. jujuy 971, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "azcuénaga 1900, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "portela 51, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "olaya 1100, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "felipe vallese 1600, palermo, ciudad autonoma de buenos aires, argentina": null,
+  "mario bravo 800, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5978232,
+    "lon": -58.4159802
+  }
 }
