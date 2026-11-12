@@ -726,5 +726,9 @@
   "av. jujuy 971, almagro, ciudad autonoma de buenos aires, argentina": null,
   "azcuénaga 1900, almagro, ciudad autonoma de buenos aires, argentina": null,
   "portela 51, almagro, ciudad autonoma de buenos aires, argentina": null,
-  "felipe vallese 1600, almagro, ciudad autonoma de buenos aires, argentina": null
+  "felipe vallese 1600, almagro, ciudad autonoma de buenos aires, argentina": null,
+  "palestina 1000, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5969419,
+    "lon": -58.4247408
+  }
 }
