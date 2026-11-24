@@ -753,5 +753,9 @@
   "avenida álvarez thomas 40, villa crespo, ciudad autonoma de buenos aires, argentina": null,
   "avenida rivadavia 3545, villa crespo, ciudad autonoma de buenos aires, argentina": null,
   "valle 160, villa crespo, ciudad autonoma de buenos aires, argentina": null,
-  "coronel niceto vega 5752, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "coronel niceto vega 5752, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "av. corrientes 4440, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.600479,
+    "lon": -58.436901
+  }
 }
