@@ -762,5 +762,9 @@
     "lat": -34.5899768,
     "lon": -58.4376282
   },
-  "rawson 27, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "rawson 27, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "humboldt 2260, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.598389,
+    "lon": -58.4526605
+  }
 }
