@@ -769,5 +769,9 @@
   },
   "arce 560, villa crespo, ciudad autonoma de buenos aires, argentina": null,
   "ugarteche 2800, villa crespo, ciudad autonoma de buenos aires, argentina": null,
-  "mario bravo 863, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "mario bravo 863, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "av. corrientes 3841, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.600479,
+    "lon": -58.436901
+  }
 }
