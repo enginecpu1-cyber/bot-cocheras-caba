@@ -783,5 +783,9 @@
     "lon": -58.4326314
   },
   "paunero 2700, villa crespo, ciudad autonoma de buenos aires, argentina": null,
-  "alfredo bufano 1800, villa crespo, ciudad autonoma de buenos aires, argentina": null
+  "alfredo bufano 1800, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "guayaquil 150, caballito, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.6198106,
+    "lon": -58.4305168
+  }
 }
