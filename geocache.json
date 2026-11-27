@@ -791,5 +791,10 @@
   "av. corrientes 3853, almagro, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.6032724,
     "lon": -58.4188179
+  },
+  "caracas 1264, villa crespo, ciudad autonoma de buenos aires, argentina": null,
+  "humboldt 1400, villa crespo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5961738,
+    "lon": -58.4496661
   }
 }
