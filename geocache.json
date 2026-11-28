@@ -796,5 +796,13 @@
   "humboldt 1400, villa crespo, ciudad autonoma de buenos aires, argentina": {
     "lat": -34.5961738,
     "lon": -58.4496661
+  },
+  "ugarteche 2800, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5778096,
+    "lon": -58.4103168
+  },
+  "godoy cruz 3236, palermo, ciudad autonoma de buenos aires, argentina": {
+    "lat": -34.5730915,
+    "lon": -58.4212396
   }
 }
